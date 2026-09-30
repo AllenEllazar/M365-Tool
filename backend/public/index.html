@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#26397d" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="M365 Admin" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>M365 Onboarding / Offboarding</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<script>
+  (function () {
+    var saved = localStorage.getItem("theme");
+    if (saved === "dark") document.documentElement.setAttribute("data-theme", "dark");
+  })();
+</script>
+</head>
+<body>
+
+<div id="loadingScreen" class="center-screen">
+  <div class="loading-screen-content">
+    <img src="logo.png" alt="MIDC Philtower" class="logo" />
+    <span class="spinner spinner-large"></span>
+    <p class="note">Loading...</p>
+  </div>
+</div>
+
+<div id="signedOutView" class="center-screen" hidden>
+  <div class="signin-card">
+    <img src="logo.png" alt="MIDC Philtower" class="logo" />
+    <h1>M365 Admin Tool</h1>
+    <p>Sign in with your Microsoft 365 admin account to continue.</p>
+    <a class="btn btn-primary" href="/auth/login">Sign in with Microsoft</a>
+  </div>
+</div>
+
+<div id="appView" class="app-shell" hidden>
+  <header class="mobile-topbar">
+    <img src="logo.png" alt="" class="brand-logo" />
+    <span class="mobile-topbar-title" id="mobileTitle">Dashboard</span>
+  </header>
+
+  <aside class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+      <img src="logo.png" alt="" class="brand-logo" />
+      <span class="brand-name">Admin Tool</span>
+    </div>
+
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav" aria-label="Workspace">
+      <button class="side-nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')" aria-current="page">
+        <span class="nav-dot"></span> <span data-i18n="navDashboard">Dashboard</span>
+      </button>
+      <button class="side-nav-item" data-tab="manage" onclick="switchTab('manage')">
+        <span class="nav-dot"></span> <span data-i18n="navManage">Manage User</span>
+      </button>
+      <button class="side-nav-item" data-tab="distro" onclick="switchTab('distro')">
+        <span class="nav-dot"></span> <span data-i18n="navDistro">Distro List</span>
+      </button>
+      <button class="side-nav-item" data-tab="create" onclick="switchTab('create')">
+        <span class="nav-dot"></span> <span data-i18n="navCreate">Onboarding</span>
+      </button>
+      <button class="side-nav-item" data-tab="offboarding" onclick="switchTab('offboarding')">
+        <span class="nav-dot"></span> <span data-i18n="navOffboarding">Offboarding</span>
+      </button>
+      <button class="side-nav-item" data-tab="guest" onclick="switchTab('guest')">
+        <span class="nav-dot"></span> <span data-i18n="navGuest">Guest User</span>
+      </button>
+      <button class="side-nav-item" data-tab="audit" onclick="switchTab('audit')">
+        <span class="nav-dot"></span> <span data-i18n="navAudit">Audit Trail</span>
+      </button>
+      <button class="side-nav-item" data-tab="mail" onclick="switchTab('mail')">
+        <span class="nav-dot"></span> <span data-i18n="navMail">Mail</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-section-label">Admin Portals</div>
+    <nav class="sidebar-nav" aria-label="Admin Portals">
+      <a href="https://entra.microsoft.com/" target="_blank" rel="noopener" class="side-nav-item side-nav-link" title="Opens Microsoft Entra admin center in a new tab">
+        <span class="side-nav-link-label"><span aria-hidden="true">🛡️</span> Entra ID</span>
+        <span class="external-icon">↗</span>
+      </a>
+      <a href="https://admin.exchange.microsoft.com/" target="_blank" rel="noopener" class="side-nav-item side-nav-link" title="Opens Exchange admin center in a new tab">
+        <span class="side-nav-link-label"><span aria-hidden="true">📧</span> Exchange Admin</span>
+        <span class="external-icon">↗</span>
+      </a>
+      <a href="https://admin.microsoft.com/sharepoint" target="_blank" rel="noopener" class="side-nav-item side-nav-link" title="Opens SharePoint admin center in a new tab">
+        <span class="side-nav-link-label"><span aria-hidden="true">🗂️</span> SharePoint Admin</span>
+        <span class="external-icon">↗</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-section-label">Preferences</div>
+    <nav class="sidebar-nav" aria-label="Preferences">
+      <button class="side-nav-item" data-tab="install" onclick="switchTab('install')">
+        <span class="nav-dot"></span> <span data-i18n="navInstall">Install App</span>
+      </button>
+      <button class="side-nav-item" data-tab="settings" onclick="switchTab('settings')">
+        <span class="nav-dot"></span> <span data-i18n="navSettings">Settings</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <button type="button" class="theme-toggle sidebar-install-btn" id="installAppBtn" onclick="installApp()" hidden><span aria-hidden="true">📲</span> Install app</button>
+
+    <button class="theme-toggle sidebar-theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode"><span id="themeIcon" aria-hidden="true">🌙</span> <span id="themeLabel">Dark mode</span></button>
+
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarInitials"></div>
+      <div>
+        <div class="sidebar-user-name" id="whoami"></div>
+        <div class="sidebar-user-role">Administrator</div>
+      </div>
+    </div>
+    <a href="/auth/logout" class="sidebar-signout">Sign out</a>
+  </aside>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileMenu()"></div>
+
+  <nav class="mobile-tabbar" aria-label="Primary">
+    <button type="button" class="mobile-tab active" data-tab="dashboard" onclick="switchTab('dashboard')" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      <span data-i18n="tabDashboard">Dashboard</span>
+    </button>
+    <button type="button" class="mobile-tab" data-tab="manage" onclick="switchTab('manage')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span data-i18n="tabManage">Users</span>
+    </button>
+    <button type="button" class="mobile-tab" data-tab="create" onclick="switchTab('create')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      <span data-i18n="tabCreate">Onboard</span>
+    </button>
+    <button type="button" class="mobile-tab" data-tab="offboarding" onclick="switchTab('offboarding')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      <span data-i18n="tabOffboarding">Offboard</span>
+    </button>
+    <button type="button" class="mobile-tab" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-expanded="false" aria-controls="appSidebar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <span data-i18n="tabMenu">Menu</span>
+    </button>
+  </nav>
+
+  <main class="main-area">
+    <div class="tab-content" id="tab-dashboard">
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleDashboard">Dashboard</h1><button class="help-icon-btn" onclick="showHelpModal('dashboard')" aria-label="Help for this page" title="Help">?</button></div>
+
+      <div id="dashboardWarning" class="result-box error-box" hidden aria-live="polite"></div>
+
+      <div class="stat-grid">
+        <button class="stat-block stat-block-blue stat-card-clickable" onclick="openStatModal('users')">
+          <div class="stat-block-top">
+            <svg class="stat-block-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div class="stat-block-number" id="statTotalUsers">—</div>
+          </div>
+          <div class="stat-block-label">Total users</div>
+          <div class="stat-block-delta" id="statUsersDelta"></div>
+          <div class="stat-block-sparkline" id="statUsersSparkline"></div>
+        </button>
+        <button class="stat-block stat-block-purple stat-card-clickable" onclick="openStatModal('groups')">
+          <div class="stat-block-top">
+            <svg class="stat-block-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            <div class="stat-block-number" id="statTotalGroups">—</div>
+          </div>
+          <div class="stat-block-label">Groups &amp; distro lists</div>
+          <div class="stat-block-view-all">View all →</div>
+        </button>
+        <button class="stat-block stat-block-amber stat-card-clickable" onclick="openStatModal('sites')">
+          <div class="stat-block-top">
+            <svg class="stat-block-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <div class="stat-block-number" id="statTotalSites">—</div>
+          </div>
+          <div class="stat-block-label">SharePoint sites</div>
+          <div class="stat-block-view-all">View all →</div>
+        </button>
+        <div class="stat-block stat-block-green stat-license-block">
+          <div class="license-toggle" role="tablist" aria-label="License context">
+            <button type="button" class="license-tab is-active" data-context="philtower" onclick="setLicenseContext('philtower')" role="tab" aria-selected="true">Philtower</button>
+            <button type="button" class="license-tab" data-context="midc" onclick="setLicenseContext('midc')" role="tab" aria-selected="false">MIDC</button>
+          </div>
+          <button class="stat-license-body stat-card-clickable" onclick="openStatModal('licenses')">
+            <div class="stat-block-top">
+              <svg class="stat-block-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+              <div class="stat-block-number" id="statLicensesAvailable">—</div>
+            </div>
+            <div class="stat-block-label" id="statLicensesLabel">Business Standard available</div>
+            <div class="stat-block-view-all">View all →</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="dashboard-row">
+        <section class="card chart-card">
+          <div class="chart-card-head">
+            <div>
+              <h2>New users</h2>
+              <p class="note">Accounts created per day, last 14 days</p>
+            </div>
+            <div class="chart-callout">
+              <div class="chart-callout-number" id="statNewUsers30">—</div>
+              <div class="chart-callout-label">new in last 30 days</div>
+            </div>
+          </div>
+          <div id="newUsersChart" class="chart-wrap"></div>
+        </section>
+
+        <section class="card donut-card">
+          <div class="chart-card-head">
+            <div>
+              <h2>Groups by type</h2>
+              <p class="note">Composition of your Groups &amp; DLs</p>
+            </div>
+          </div>
+          <div id="groupTypeDonut" class="donut-wrap"></div>
+        </section>
+      </div>
+
+      <section class="card chart-card">
+        <div class="chart-card-head">
+          <div>
+            <h2>New groups &amp; distribution lists</h2>
+            <p class="note">Groups &amp; DLs created per day, last 14 days</p>
+          </div>
+          <div class="chart-callout">
+            <div class="chart-callout-number chart-callout-purple" id="statNewGroups30">—</div>
+            <div class="chart-callout-label">new in last 30 days</div>
+          </div>
+        </div>
+        <div id="newGroupsChart" class="chart-wrap"></div>
+      </section>
+
+      <section class="card">
+        <div class="pending-header">
+          <h2>Recently added</h2>
+        </div>
+        <div id="recentUsersList" class="recent-list"></div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-manage" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleManage">Manage User</h1><button class="help-icon-btn" onclick="showHelpModal('manage')" aria-label="Help for this page" title="Help">?</button></div>
+
+      <section class="card search-card">
+        <h2>Find a user</h2>
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <input id="targetUpn" type="text" placeholder="Name or email — e.g. Jane Doe or jane.doe@contoso.com" oninput="onSearchInput()" onkeydown="if(event.key==='Enter') searchUser()" />
+            <span class="input-spinner" id="searchSpinner" hidden></span>
+          </div>
+          <button class="btn btn-primary" onclick="searchUser()">Search</button>
+        </div>
+        <ul class="chip-list search-results" id="searchResults"></ul>
+        <div id="overviewError" class="result-box error-box" hidden></div>
+      </section>
+
+      <section class="card">
+        <h2>Bulk manage users (CSV)</h2>
+        <p class="note">Applies one action to every user in the file. Column: <strong>Email</strong>. Pick the action first, then upload — the same file works for any of the three.</p>
+        <div class="btn-row" id="bulkManageActionOptions">
+          <button class="btn settings-option active" data-action="reset-password" onclick="selectBulkManageAction('reset-password')">Reset password</button>
+          <button class="btn settings-option" data-action="enable" onclick="selectBulkManageAction('enable')">Enable accounts</button>
+          <button class="btn settings-option" data-action="disable" onclick="selectBulkManageAction('disable')">Disable accounts</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-small" onclick="downloadSampleCsv('bulk-manage-users-sample.csv', ['Email'], [['jane.doe@philtower.net'],['john.smith@philtower.net']])">Download sample CSV</button>
+        </div>
+        <input type="file" accept=".csv" id="bulkManageFile" onchange="handleBulkFile('bulkManageFile', 'bulkManagePreview', ['Email'])" />
+        <div id="bulkManagePreview"></div>
+        <button class="btn btn-primary" id="bulkManageRunBtn" hidden onclick="confirmBulkManageUsers()">Run bulk action</button>
+        <div id="bulkManageLog" class="bulk-log"></div>
+      </section>
+
+      <div id="overviewPanel" hidden class="fade-in">
+        <div class="profile-strip card">
+          <div class="avatar" id="avatarInitials"></div>
+          <div>
+            <h2 id="profileName"></h2>
+            <p class="muted" id="profileUpn"></p>
+            <span class="status-pill" id="profileStatus"></span>
+          </div>
+        </div>
+
+        <div class="manage-layout">
+          <nav class="manage-menu" aria-label="Manage User sections">
+            <button class="menu-item active" data-section="account" onclick="switchSection('account')"><span aria-hidden="true">👤</span> Account</button>
+            <button class="menu-item" data-section="licenses" onclick="switchSection('licenses')"><span aria-hidden="true">🔑</span> Licenses</button>
+            <button class="menu-item" data-section="groups" onclick="switchSection('groups')"><span aria-hidden="true">👥</span> Groups &amp; DLs</button>
+            <button class="menu-item" data-section="sites" onclick="switchSection('sites')"><span aria-hidden="true">📁</span> SharePoint Sites</button>
+            <button class="menu-item" data-section="contact" onclick="switchSection('contact')"><span aria-hidden="true">📇</span> Contact Info</button>
+          </nav>
+
+          <div class="manage-content">
+            <section class="card manage-section" id="section-account">
+              <h2>Account</h2>
+              <div class="btn-row">
+                <button class="btn" id="enableBtn" onclick="setEnabled(true)">Enable account</button>
+                <button class="btn btn-danger" onclick="triggerDisableAccount()">Disable account</button>
+                <button class="btn btn-danger" onclick="triggerResetPassword()">Reset password</button>
+                <button class="btn btn-danger" onclick="triggerRevokeSessions()">Revoke active sessions</button>
+              </div>
+              <div id="passwordResetInput" class="inline-optional">
+                <label>New password (leave blank to auto-generate)</label>
+                <input id="newPassword" type="text" placeholder="Optional" />
+              </div>
+              <div id="actionResult" class="result-box" aria-live="polite"></div>
+            </section>
+
+            <section class="card manage-section" id="section-licenses" hidden>
+              <h2>Assigned licenses</h2>
+              <ul class="chip-list" id="currentLicenses"></ul>
+              <details class="assign-more">
+                <summary>Assign a license</summary>
+                <button class="btn btn-small" onclick="loadLicenseOptions()">Load available licenses</button>
+                <select id="licenseSelect" size="4"></select>
+                <label>Usage location (2-letter code, required if not set)</label>
+                <input id="usageLocation" type="text" placeholder="US" maxlength="2" />
+                <button class="btn btn-primary btn-small" onclick="licenseAction('assign')">Assign</button>
+              </details>
+              <div id="licenseResult" class="result-box"></div>
+            </section>
+
+            <section class="card manage-section" id="section-groups" hidden>
+              <h2>Groups &amp; distribution lists</h2>
+              <ul class="chip-list removable" id="currentGroups"></ul>
+              <details class="assign-more">
+                <summary>Add to a group</summary>
+                <button class="btn btn-small" onclick="loadGroupOptions()">Load groups</button>
+                <input type="text" class="list-filter-input" id="groupSelectFilter" placeholder="Filter groups..." oninput="filterGroupSelect(this.value)" />
+                <select id="groupSelect" size="4"></select>
+                <button class="btn btn-primary btn-small" onclick="groupAction('add')">Add</button>
+              </details>
+              <p class="note">Classic Exchange distribution lists (not mail-enabled security groups) can't be managed via this tool.</p>
+              <div id="groupResult" class="result-box"></div>
+            </section>
+
+            <section class="card manage-section" id="section-sites" hidden>
+              <h2>SharePoint sites</h2>
+              <p class="note">Derived from Microsoft 365 Group membership (most team sites are group-backed) — a group without a provisioned site yet just won't show one here.</p>
+              <ul class="chip-list" id="currentSharePointSites"></ul>
+              <details class="assign-more">
+                <summary>Add to a new site</summary>
+                <input id="siteQuery" type="text" placeholder="Marketing Team Site" />
+                <button class="btn btn-small" onclick="searchSites()">Search</button>
+                <select id="siteSelect" size="4"></select>
+                <button class="btn btn-primary btn-small" onclick="addToSite()">Add user to site</button>
+              </details>
+              <p class="note">To remove site access, remove the underlying group membership on the Groups &amp; DLs tab — that's what actually controls access for group-backed sites.</p>
+              <div id="siteResult" class="result-box"></div>
+            </section>
+
+            <section class="card manage-section" id="section-contact" hidden>
+              <h2>Manage contact information</h2>
+              <p class="note">Same fields as the Microsoft 365 admin center's contact info panel. Loads with this person's current values — anything you leave blank will be cleared on save.</p>
+
+              <div class="form-grid">
+                <div>
+                  <label>First name</label>
+                  <input id="contactFirstName" type="text" placeholder="Juan" />
+                </div>
+                <div>
+                  <label>Last name</label>
+                  <input id="contactLastName" type="text" placeholder="Dela Cruz" />
+                </div>
+              </div>
+              <label>Job title</label>
+              <input id="contactJobTitle" type="text" placeholder="Commercial Manager" />
+              <div class="form-grid">
+                <div>
+                  <label>Department</label>
+                  <input id="contactDepartment" type="text" placeholder="Techno Commercial" />
+                </div>
+                <div>
+                  <label>Office</label>
+                  <input id="contactOffice" type="text" placeholder="" />
+                </div>
+              </div>
+              <div class="form-grid">
+                <div>
+                  <label>Office phone</label>
+                  <input id="contactOfficePhone" type="text" placeholder="" />
+                </div>
+                <div>
+                  <label>Mobile phone</label>
+                  <input id="contactMobilePhone" type="text" placeholder="" />
+                </div>
+              </div>
+              <label>Street address</label>
+              <input id="contactStreetAddress" type="text" placeholder="" />
+              <div class="form-grid">
+                <div>
+                  <label>City</label>
+                  <input id="contactCity" type="text" placeholder="" />
+                </div>
+                <div>
+                  <label>State / Province</label>
+                  <input id="contactState" type="text" placeholder="" />
+                </div>
+              </div>
+              <div class="form-grid">
+                <div>
+                  <label>ZIP / Postal code</label>
+                  <input id="contactPostalCode" type="text" placeholder="" />
+                </div>
+                <div>
+                  <label>Country / Region</label>
+                  <input id="contactCountry" type="text" placeholder="" />
+                </div>
+              </div>
+
+              <button class="btn btn-primary btn-small" onclick="confirmAction('Save these contact info changes? This updates the user\'s profile in Microsoft 365.', saveContactInfo)">Save changes</button>
+              <div id="contactResult" class="result-box" aria-live="polite"></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-distro" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleDistro">Distro List</h1><button class="help-icon-btn" onclick="showHelpModal('distro')" aria-label="Help for this page" title="Help">?</button></div>
+
+      <section class="card">
+        <h2>Find a group or distribution list</h2>
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <input id="distroSearch" type="text" placeholder="Type a group name..." oninput="onDistroSearchInput()" />
+            <span class="input-spinner" id="distroSearchSpinner" hidden></span>
+          </div>
+        </div>
+        <ul class="chip-list search-results" id="distroSearchResults"></ul>
+        <div id="distroError" class="result-box error-box" hidden></div>
+      </section>
+
+      <div id="distroPanel" hidden class="fade-in">
+        <div class="profile-strip card">
+          <div class="avatar" id="distroAvatar">👥</div>
+          <div>
+            <h2 id="distroName"></h2>
+            <p class="muted" id="distroMail"></p>
+            <span class="status-pill enabled" id="distroType"></span>
+          </div>
+        </div>
+
+        <div class="manage-layout">
+          <nav class="manage-menu" aria-label="Group sections">
+            <button class="menu-item active" data-section="members" onclick="switchDistroSection('members')"><span aria-hidden="true">👥</span> Members</button>
+            <button class="menu-item" data-section="owners" onclick="switchDistroSection('owners')"><span aria-hidden="true">🔑</span> Owners</button>
+            <button class="menu-item" data-section="rename" onclick="switchDistroSection('rename')"><span aria-hidden="true">✏️</span> Rename</button>
+          </nav>
+
+          <div class="manage-content">
+            <section class="card manage-section" id="distro-section-members">
+              <h2>Members</h2>
+              <ul class="chip-list" id="distroMembersList"></ul>
+              <details class="assign-more">
+                <summary>Add a member</summary>
+                <input type="text" id="distroMemberSearch" placeholder="Search people..." oninput="onDistroPersonInput('member', this.value)" />
+                <ul class="chip-list search-results" id="distroMemberResults"></ul>
+              </details>
+              <div id="distroMemberResult" class="result-box" aria-live="polite"></div>
+            </section>
+
+            <section class="card manage-section" id="distro-section-owners" hidden>
+              <h2>Owners</h2>
+              <ul class="chip-list" id="distroOwnersList"></ul>
+              <details class="assign-more">
+                <summary>Add an owner</summary>
+                <input type="text" id="distroOwnerSearch" placeholder="Search people..." oninput="onDistroPersonInput('owner', this.value)" />
+                <ul class="chip-list search-results" id="distroOwnerResults"></ul>
+              </details>
+              <div id="distroOwnerResult" class="result-box" aria-live="polite"></div>
+            </section>
+
+            <section class="card manage-section" id="distro-section-rename" hidden>
+              <h2>Rename</h2>
+              <label>Display name</label>
+              <input id="distroNewName" type="text" placeholder="Marketing Team" />
+              <label>Mail nickname (optional — changes the group's email address, a bigger/more disruptive change than the display name alone)</label>
+              <input id="distroNewNickname" type="text" placeholder="Leave blank to keep the current email address" />
+              <button class="btn btn-primary btn-small" onclick="confirmAction('Rename this group? The new name will show everywhere in Microsoft 365 immediately.', renameDistroGroup)">Save changes</button>
+              <div id="distroRenameResult" class="result-box" aria-live="polite"></div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <section class="card" id="bulkDistroCard">
+        <h2>Bulk manage groups (CSV)</h2>
+        <p class="note">Add or remove many people across many groups in one file. Columns: <strong>GroupName, Email, Action</strong> (Action is <code>Add</code> or <code>Remove</code>).</p>
+        <div class="btn-row">
+          <button class="btn btn-small" onclick="downloadSampleCsv('bulk-manage-groups-sample.csv', ['GroupName','Email','Action'], [['Marketing Team','jane.doe@philtower.net','Add'],['All Company','john.smith@philtower.net','Remove']])">Download sample CSV</button>
+        </div>
+        <input type="file" accept=".csv" id="bulkDistroFile" onchange="handleBulkFile('bulkDistroFile', 'bulkDistroPreview', ['GroupName','Email','Action'])" />
+        <div id="bulkDistroPreview"></div>
+        <button class="btn btn-primary" id="bulkDistroRunBtn" hidden onclick="confirmAction('Run this bulk group membership change? This can\'t be undone in bulk — review the row count above first.', runBulkDistro)">Run bulk update</button>
+        <div id="bulkDistroLog" class="bulk-log"></div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-create" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleCreate">Onboarding</h1><button class="help-icon-btn" onclick="showHelpModal('onboarding')" aria-label="Help for this page" title="Help">?</button></div>
+      <section class="card">
+        <div class="form-grid">
+          <div>
+            <label>First name</label>
+            <input id="newFirstName" type="text" placeholder="Juan" oninput="suggestUsername()" />
+          </div>
+          <div>
+            <label>Last name</label>
+            <input id="newLastName" type="text" placeholder="Dela Cruz" oninput="suggestUsername()" />
+          </div>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label>Username</label>
+            <div class="upn-row">
+              <input id="newUsername" type="text" placeholder="juan.delacruz" oninput="markUsernameEdited(); updateUpnPreview();" />
+              <span class="upn-domain" id="newUpnDomain">@…</span>
+            </div>
+            <p class="note" id="newUpnPreview"></p>
+          </div>
+          <div>
+            <label>Department</label>
+            <input id="newDepartment" type="text" placeholder="Human Resources" />
+          </div>
+          <div>
+            <label>Position</label>
+            <input id="newPosition" type="text" placeholder="HR Officer" />
+          </div>
+        </div>
+        <label>Usage location (2-letter code, needed to assign a license)</label>
+        <input id="newUsageLocation" type="text" placeholder="PH" maxlength="2" />
+
+        <div class="form-grid">
+          <div>
+            <h3>License</h3>
+            <button class="btn btn-small" onclick="loadCreateLicenseOptions()">Load licenses</button>
+            <input type="text" class="list-filter-input" placeholder="Filter licenses..." oninput="filterCheckboxContainer(this.value, 'createLicenseList')" />
+            <div id="createLicenseList" class="checkbox-list"></div>
+          </div>
+          <div>
+            <h3>Groups</h3>
+            <button class="btn btn-small" onclick="loadCreateGroupOptions()">Load groups</button>
+            <input type="text" class="list-filter-input" placeholder="Filter groups..." oninput="filterCheckboxContainer(this.value, 'createGroupList')" />
+            <div id="createGroupList" class="checkbox-list"></div>
+          </div>
+        </div>
+
+        <h3>SharePoint sites</h3>
+        <div class="search-row">
+          <input id="createSiteQuery" type="text" placeholder="Marketing Team Site" />
+          <button class="btn btn-small" onclick="searchCreateSites()">Search</button>
+        </div>
+        <input type="text" class="list-filter-input" placeholder="Filter results..." oninput="filterCheckboxContainer(this.value, 'createSiteList')" />
+        <div id="createSiteList" class="checkbox-list"></div>
+
+        <button class="btn btn-primary" id="createUserBtn" onclick="confirmAction('Create this user and apply the selected license/group/site assignments? You\'ll get to review the notification email before it sends.', createUser)">Create user</button>
+        <div id="createResult" class="result-box" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <h2>Bulk onboard (CSV)</h2>
+        <p class="note">Creates every account in the file, assigns each one a <strong>Microsoft 365 Business Standard</strong> license automatically, and (if you provide a PreferredEmail) sends that person their own credentials directly. Columns: <strong>FirstName, LastName, Username, Department, UsageLocation, PreferredEmail</strong>, plus an optional <strong>JobTitle</strong> column if you want each person's position set too (UsageLocation is a 2-letter country code, e.g. PH; PreferredEmail is optional — the new employee's own personal/external email to receive their sign-in details). Username only — your own sign-in domain is added automatically, same as the single form above. Group assignment still happens afterward via Manage User or the Distro List bulk CSV, once accounts exist.</p>
+        <div class="btn-row">
+          <button class="btn btn-small" onclick="downloadSampleCsv('bulk-onboard-sample.csv', ['FirstName','LastName','Username','Department','JobTitle','UsageLocation','PreferredEmail'], [['Juan','Dela Cruz','juan.delacruz','Human Resources','HR Officer','PH','juan.delacruz.personal@gmail.com'],['Maria','Santos','maria.santos','Finance','','PH','']])">Download sample CSV</button>
+        </div>
+        <input type="file" accept=".csv" id="bulkOnboardFile" onchange="handleBulkFile('bulkOnboardFile', 'bulkOnboardPreview', ['FirstName','LastName','Username','Department','UsageLocation'])" />
+        <div id="bulkOnboardPreview"></div>
+        <button class="btn btn-primary" id="bulkOnboardRunBtn" hidden onclick="confirmAction('Create every account in this file and assign each a Microsoft 365 Business Standard license? Anyone with a PreferredEmail gets their credentials sent directly — everyone else\'s temporary password comes back in a downloadable list at the end.', runBulkOnboard)">Run bulk onboard</button>
+        <div id="bulkOnboardLog" class="bulk-log"></div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-offboarding" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleOffboarding">Offboarding</h1><button class="help-icon-btn" onclick="showHelpModal('offboarding')" aria-label="Help for this page" title="Help">?</button></div>
+
+      <section class="card">
+        <h2>Offboard a user</h2>
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <input id="offboardUpn" type="text" placeholder="Name or email — e.g. Juan Dela Cruz or juan.delacruz@philtower.net" oninput="onOffboardSearchInput()" onkeydown="if(event.key==='Enter') searchOffboardUser()" />
+            <span class="input-spinner" id="offboardSearchSpinner" hidden></span>
+          </div>
+          <button class="btn btn-primary" onclick="searchOffboardUser()">Search</button>
+        </div>
+        <ul class="chip-list search-results" id="offboardSearchResults"></ul>
+        <div id="offboardError" class="result-box error-box" hidden></div>
+
+        <div id="offboardTarget" hidden class="fade-in">
+          <div class="profile-strip">
+            <div class="avatar" id="offboardAvatar"></div>
+            <div>
+              <h2 id="offboardName"></h2>
+              <p class="muted" id="offboardTargetUpn"></p>
+            </div>
+          </div>
+
+          <div class="offboard-warning-box">
+            <strong>This will immediately:</strong>
+            <ul>
+              <li>Remove this user from every group and distribution list they belong to</li>
+              <li>Revoke all their active sign-in sessions (signed out everywhere)</li>
+              <li>Reset their password to a random value — <em>not</em> sent to them (this is a lockout, not a handoff)</li>
+              <li>Schedule their license(s) for removal in 30 days, tracked on the Pending list below</li>
+            </ul>
+            <p class="note">Licenses are <strong>not</strong> removed immediately — see the note under "Pending license removals" for why this needs a manual step after 30 days rather than firing on its own.</p>
+          </div>
+
+          <button class="btn btn-danger" onclick="confirmAction('Offboard this user now? This removes all their group memberships and any direct SharePoint site access, revokes sessions, and resets their password immediately.', runOffboarding)">Offboard this user</button>
+          <div id="offboardResult" class="result-box" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="pending-header">
+          <div>
+            <h2>Pending license removals</h2>
+            <p class="note">Users offboarded 30+ days ago whose license(s) haven't been removed yet. Nothing here happens automatically — this app can't authenticate in the background with nobody signed in, so processing is a deliberate click.</p>
+          </div>
+          <button class="btn btn-small" onclick="loadPendingOffboarding()">Refresh</button>
+        </div>
+        <button class="btn btn-primary btn-small" id="processAllDueBtn" onclick="confirmAction('Remove licenses for every user currently due? This cannot be undone from here.', processAllDue)">Process all due now</button>
+        <div id="pendingOffboardList" class="pending-list"></div>
+      </section>
+
+      <section class="card">
+        <h2>Bulk offboard (CSV)</h2>
+        <p class="note">Offboards every user in the file — removes all group memberships and any direct SharePoint site access, revokes sessions, resets password silently, and marks each for the same 30-day license removal as a single offboard. Column: <strong>Email</strong>. A results CSV (Email, Status) downloads automatically once it finishes, for your records.</p>
+        <div class="btn-row">
+          <button class="btn btn-small" onclick="downloadSampleCsv('bulk-offboard-sample.csv', ['Email'], [['jane.doe@philtower.net'],['john.smith@philtower.net']])">Download sample CSV</button>
+        </div>
+        <input type="file" accept=".csv" id="bulkOffboardFile" onchange="handleBulkFile('bulkOffboardFile', 'bulkOffboardPreview', ['Email'])" />
+        <div id="bulkOffboardPreview"></div>
+        <button class="btn btn-danger" id="bulkOffboardRunBtn" hidden onclick="confirmAction('Offboard every user in this file? This removes their group memberships, any direct SharePoint site access, and revokes their sessions immediately, for all of them at once. This cannot be undone from here.', runBulkOffboard)">Run bulk offboard</button>
+        <div id="bulkOffboardLog" class="bulk-log"></div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-guest" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleGuest">Guest User</h1><button class="help-icon-btn" onclick="showHelpModal('guest')" aria-label="Help for this page" title="Help">?</button></div>
+      <section class="card">
+        <p class="note">Adds an external person as a guest in your directory — for a partner, contractor, or vendor who needs limited access. This does <strong>not</strong> send them any email or invitation; they won't know this happened until you decide to share access some other way.</p>
+
+        <div class="form-grid">
+          <div>
+            <label>First name</label>
+            <input id="guestFirstName" type="text" placeholder="Juan" />
+          </div>
+          <div>
+            <label>Last name</label>
+            <input id="guestLastName" type="text" placeholder="Dela Cruz" />
+          </div>
+        </div>
+        <label>External email address (their existing email, not one you create)</label>
+        <input id="guestEmail" type="text" placeholder="juan.delacruz@gmail.com" />
+        <label>Department / notes (optional)</label>
+        <input id="guestDepartment" type="text" placeholder="Vendor — ABC Supplies" />
+
+        <h3>Add to groups (optional)</h3>
+        <button class="btn btn-small" onclick="loadGuestGroupOptions()">Load groups</button>
+        <input type="text" class="list-filter-input" placeholder="Filter groups..." oninput="filterCheckboxContainer(this.value, 'guestGroupList')" />
+        <div id="guestGroupList" class="checkbox-list"></div>
+
+        <button class="btn btn-primary" id="createGuestBtn" onclick="confirmAction('Add this person as a guest? No email or invitation will be sent to them.', createGuestUser)">Add guest user</button>
+        <div id="guestResult" class="result-box" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-audit" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="auditTitle">Audit Trail</h1><button class="help-icon-btn" onclick="showHelpModal('audit')" aria-label="Help for this page" title="Help">?</button></div>
+      <section class="card">
+        <div class="pending-header">
+          <div>
+            <h2>Recent admin activity</h2>
+            <p class="note">Directory audit log from Entra ID — user, group, app, and device changes made through the admin portal or Graph API. Most tenants keep roughly 30 days of history without an Audit Premium add-on.</p>
+          </div>
+          <button class="btn btn-small" onclick="loadAuditLog()">Refresh</button>
+        </div>
+        <input type="text" class="list-filter-input" id="auditFilter" placeholder="Filter by action, person, or target..." oninput="filterAuditLog(this.value)" />
+        <div id="auditError" class="result-box error-box" hidden></div>
+        <div id="auditList" class="audit-list"></div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-mail" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleMail">Mail</h1><button class="help-icon-btn" onclick="showHelpModal('mail')" aria-label="Help for this page" title="Help">?</button></div>
+
+      <section class="card">
+        <h2>Email activity report</h2>
+        <p class="note">Per-user send/receive/read counts from Microsoft Graph's real activity reports API. This is an <strong>aggregate summary</strong>, not a per-message trace — Graph has no API for looking up an individual email's sender, recipient, subject, or delivery status. For that, use the real tool linked below.</p>
+        <div class="btn-row">
+          <button class="btn btn-small" onclick="loadMailActivity('D7')">Last 7 days</button>
+          <button class="btn btn-small" onclick="loadMailActivity('D30')">Last 30 days</button>
+          <button class="btn btn-small" onclick="loadMailActivity('D90')">Last 90 days</button>
+        </div>
+        <input type="text" class="list-filter-input" id="mailActivityFilter" placeholder="Filter by name or email..." oninput="filterMailActivity(this.value)" />
+        <div id="mailActivityError" class="result-box error-box" hidden></div>
+        <div id="mailActivityTableWrap" class="mail-table-wrap"></div>
+      </section>
+
+      <section class="card">
+        <h2>Message trace &amp; mail flow rules</h2>
+        <p class="note">These aren't things this app can build — Microsoft Graph has no API for per-message trace, transport rules, or anti-spam/blocked-sender lists at all. That's Exchange-specific functionality, only reachable through the Exchange admin center directly.</p>
+        <div class="mail-link-row">
+          <a href="https://admin.exchange.microsoft.com/#/messagetrace" target="_blank" rel="noopener" class="btn btn-primary btn-small">Open Message Trace ↗</a>
+          <a href="https://admin.exchange.microsoft.com/#/transportrules" target="_blank" rel="noopener" class="btn btn-small">Mail Flow Rules ↗</a>
+          <a href="https://security.microsoft.com/antispam" target="_blank" rel="noopener" class="btn btn-small">Anti-Spam / Blocked Senders ↗</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-install" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleInstall">Install App</h1></div>
+      <p class="note" style="margin-top:-8px;margin-bottom:20px;">
+        Works on your phone or your computer. Same sign-in, same data — it just opens like an app instead of a browser tab.
+        No app store, nothing to buy.
+      </p>
+
+      <div class="install-grid">
+
+        <section class="card install-card" id="installCardIos">
+          <div class="install-card-head">
+            <span class="install-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16.5 8.5c-1.2-1.4-3-1.6-4.3-.6-.2.15-.5.15-.7 0-1.3-1-3.1-.8-4.3.6-1.9 2.2-1.4 6.7 1.4 9.8 1 .8 1.9.7 2.8.7s1.8.1 2.8-.7c1.5-1.6 2.4-3.8 2.6-5.5"/>
+                <path d="M12.3 7.1c0-1.5 1-2.7 2.3-3"/>
+              </svg>
+            </span>
+            <div>
+              <h2>iPhone &amp; iPad</h2>
+              <span class="install-badge" id="installBadgeIos" hidden>This looks like your device</span>
+            </div>
+          </div>
+          <ol class="install-steps">
+            <li>Open this site in <strong>Safari</strong> — it has to be Safari specifically, Chrome and other browsers on iOS aren't allowed to do this.</li>
+            <li>Tap the <strong>Share</strong> icon (the square with an arrow, in the bottom toolbar).</li>
+            <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+            <li>Tap <strong>Add</strong> in the top-right corner.</li>
+          </ol>
+          <p class="note">iOS doesn't let any button do this automatically — Apple requires it to be done manually from Safari's own Share menu.</p>
+        </section>
+
+        <section class="card install-card" id="installCardAndroid">
+          <div class="install-card-head">
+            <span class="install-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 10v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6"/>
+                <path d="M6 10a6 6 0 0 1 12 0"/>
+                <line x1="9" y1="8" x2="9" y2="8.01"/>
+                <line x1="15" y1="8" x2="15" y2="8.01"/>
+                <line x1="8" y1="4" x2="7" y2="2.5"/>
+                <line x1="16" y1="4" x2="17" y2="2.5"/>
+                <line x1="4" y1="13" x2="4" y2="17"/>
+                <line x1="20" y1="13" x2="20" y2="17"/>
+                <line x1="9" y1="17" x2="9" y2="20"/>
+                <line x1="15" y1="17" x2="15" y2="20"/>
+              </svg>
+            </span>
+            <div>
+              <h2>Android</h2>
+              <span class="install-badge" id="installBadgeAndroid" hidden>This looks like your device</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary install-now-btn" data-install-btn hidden onclick="installApp()">Install now</button>
+          <ol class="install-steps">
+            <li>Open this site in <strong>Chrome</strong>.</li>
+            <li>Tap <strong>Install now</strong> above if it's showing, or the ⋮ menu → <strong>Add to Home screen</strong> / <strong>Install app</strong>.</li>
+            <li>Confirm by tapping <strong>Install</strong>.</li>
+          </ol>
+        </section>
+
+        <section class="card install-card" id="installCardDesktop">
+          <div class="install-card-head">
+            <span class="install-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </span>
+            <div>
+              <h2>Windows &amp; Mac</h2>
+              <span class="install-badge" id="installBadgeDesktop" hidden>This looks like your device</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary install-now-btn" data-install-btn hidden onclick="installApp()">Install now</button>
+          <ol class="install-steps">
+            <li>Open this site in <strong>Chrome</strong> or <strong>Edge</strong>.</li>
+            <li>Tap <strong>Install now</strong> above if it's showing, or click the install icon at the right side of the address bar.</li>
+            <li>Click <strong>Install</strong> in the popup.</li>
+          </ol>
+          <p class="note">Firefox and Safari on desktop don't support installing sites as apps — Chrome or Edge only, for now.</p>
+        </section>
+
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-settings" hidden>
+      <div class="page-title-row"><h1 class="page-title" data-i18n="titleSettings">Settings</h1><button class="help-icon-btn" onclick="showHelpModal('settings')" aria-label="Help for this page" title="Help">?</button></div>
+
+      <section class="card">
+        <h2>Text size</h2>
+        <p class="note">Applies across the whole app, saved on this device.</p>
+        <div class="btn-row" id="textSizeOptions">
+          <button class="btn settings-option" data-size="90">Small</button>
+          <button class="btn settings-option" data-size="100">Default</button>
+          <button class="btn settings-option" data-size="115">Large</button>
+          <button class="btn settings-option" data-size="130">Extra large</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Background</h2>
+        <p class="note">Pick a background theme for the main content area.</p>
+        <div class="bg-swatch-grid" id="bgOptions">
+          <button class="bg-swatch" data-bg="default" title="Default">
+            <span class="bg-swatch-preview bg-preview-default"></span> Default
+          </button>
+          <button class="bg-swatch" data-bg="softblue" title="Soft Blue">
+            <span class="bg-swatch-preview bg-preview-softblue"></span> Soft Blue
+          </button>
+          <button class="bg-swatch" data-bg="sunset" title="Warm Sunset">
+            <span class="bg-swatch-preview bg-preview-sunset"></span> Warm Sunset
+          </button>
+          <button class="bg-swatch" data-bg="forest" title="Forest">
+            <span class="bg-swatch-preview bg-preview-forest"></span> Forest
+          </button>
+          <button class="bg-swatch" data-bg="slate" title="Slate">
+            <span class="bg-swatch-preview bg-preview-slate"></span> Slate
+          </button>
+          <button class="bg-swatch" data-bg="plain" title="Plain White">
+            <span class="bg-swatch-preview bg-preview-plain"></span> Plain White
+          </button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Language</h2>
+        <p class="note">Translates menu labels and section headings. Search results, error messages, exported files, and other generated content stay in English for now.</p>
+        <div class="btn-row" id="langOptions">
+          <button class="btn settings-option" data-lang="en">English</button>
+          <button class="btn settings-option" data-lang="fil">Filipino</button>
+        </div>
+      </section>
+
+      <h2 class="settings-subheading">Export data</h2>
+
+      <section class="card export-card">
+        <div class="export-card-head">
+          <span class="export-icon" aria-hidden="true">👥</span>
+          <div>
+            <h2>All users</h2>
+            <p class="muted">Display name, email, department, account status, and assigned license(s) for every user in the tenant.</p>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="exportUsersBtn" onclick="downloadExport('users', 'users-export.csv', 'exportUsersBtn')">Download CSV</button>
+      </section>
+
+      <section class="card export-card">
+        <div class="export-card-head">
+          <span class="export-icon" aria-hidden="true">📋</span>
+          <div>
+            <h2>All groups &amp; distribution lists</h2>
+            <p class="muted">Every group visible via Microsoft Graph, with its type (Microsoft 365 Group, security group, mail-enabled security group, or distribution group).</p>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="exportGroupsBtn" onclick="downloadExport('groups', 'groups-distro-lists-export.csv', 'exportGroupsBtn')">Download CSV</button>
+        <p class="note">Classic Exchange distribution lists (not mail-enabled security groups) can't be read via this tool — same limitation as elsewhere in the app.</p>
+      </section>
+
+      <section class="card export-card">
+        <div class="export-card-head">
+          <span class="export-icon" aria-hidden="true">🎯</span>
+          <div>
+            <h2>One specific group or DL</h2>
+            <p class="muted">Members and owners of a single group — e.g. just "PhiltowerDLgroup" — instead of every group in the tenant.</p>
+          </div>
+        </div>
+        <button class="btn btn-small" onclick="loadExportGroupOptions()">Load groups</button>
+        <input type="text" class="list-filter-input" id="exportGroupFilter" placeholder="Filter groups..." oninput="filterExportGroupSelect(this.value)" />
+        <select id="exportGroupSelect" size="5"></select>
+        <button class="btn btn-primary" id="exportOneGroupBtn" onclick="downloadOneGroup()">Download CSV</button>
+      </section>
+
+      <section class="card export-card">
+        <div class="export-card-head">
+          <span class="export-icon" aria-hidden="true">📁</span>
+          <div>
+            <h2>All SharePoint sites</h2>
+            <p class="muted">Every SharePoint site in the tenant with its name and URL.</p>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="exportSitesBtn" onclick="downloadExport('sites', 'sharepoint-sites-export.csv', 'exportSitesBtn')">Download CSV</button>
+      </section>
+
+      <section class="card export-card">
+        <div class="export-card-head">
+          <span class="export-icon" aria-hidden="true">🎯</span>
+          <div>
+            <h2>One specific SharePoint site</h2>
+            <p class="muted">Who has access to a single site and their role — instead of every site in the tenant.</p>
+          </div>
+        </div>
+        <div class="search-row">
+          <input id="exportSiteQuery" type="text" placeholder="Marketing Team Site" />
+          <button class="btn btn-small" onclick="searchExportSites()">Search</button>
+        </div>
+        <select id="exportSiteSelect" size="5"></select>
+        <button class="btn btn-primary" id="exportOneSiteBtn" onclick="downloadOneSite()">Download CSV</button>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div id="confirmModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="confirmMessage">
+  <div class="modal-box">
+    <p id="confirmMessage"></p>
+    <div class="btn-row modal-actions">
+      <button class="btn" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmYesBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="listModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="listModalTitle" onclick="if(event.target===this) closeListModal()">
+  <div class="modal-box list-modal-box">
+    <div class="list-modal-header">
+      <h2 id="listModalTitle"></h2>
+      <button class="modal-close-btn" onclick="closeListModal()" aria-label="Close"><span aria-hidden="true">✕</span></button>
+    </div>
+    <input id="listModalFilter" type="text" placeholder="Filter..." class="list-modal-filter" oninput="filterListModal()" />
+    <div id="listModalBody" class="list-modal-body"></div>
+  </div>
+</div>
+
+<div id="emailPreviewModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="emailPreviewHeading">
+  <div class="modal-box email-preview-box">
+    <div class="list-modal-header">
+      <h2 id="emailPreviewHeading">Review before sending</h2>
+      <button class="modal-close-btn" onclick="cancelWelcomeEmail()" aria-label="Close"><span aria-hidden="true">✕</span></button>
+    </div>
+    <div class="email-recipients-field">
+      <span class="email-preview-label">To</span>
+      <div class="email-recipient-editor">
+        <ul class="chip-list email-chip-list" id="emailToChips"></ul>
+        <input type="text" id="emailToInput" class="email-recipient-input" placeholder="Search people or type an email..." oninput="onEmailRecipientInput('to', this.value)" onkeydown="onEmailRecipientKeydown(event, 'to')" />
+        <ul class="chip-list search-results email-recipient-results" id="emailToResults"></ul>
+      </div>
+    </div>
+    <div class="email-recipients-field">
+      <span class="email-preview-label">CC</span>
+      <div class="email-recipient-editor">
+        <ul class="chip-list email-chip-list" id="emailCcChips"></ul>
+        <input type="text" id="emailCcInput" class="email-recipient-input" placeholder="Search people or type an email..." oninput="onEmailRecipientInput('cc', this.value)" onkeydown="onEmailRecipientKeydown(event, 'cc')" />
+        <ul class="chip-list search-results email-recipient-results" id="emailCcResults"></ul>
+      </div>
+    </div>
+    <div class="email-preview-field">
+      <span class="email-preview-label">Subject</span>
+      <span id="emailPreviewSubject"></span>
+    </div>
+    <div class="email-preview-body" id="emailPreviewBody"></div>
+    <div class="btn-row modal-actions">
+      <button class="btn" onclick="cancelWelcomeEmail()">Don't send</button>
+      <button class="btn btn-primary" id="emailPreviewSendBtn" onclick="confirmSendWelcomeEmail()">Send email</button>
+    </div>
+  </div>
+</div>
+
+<div id="helpModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+  <div class="modal-box help-modal-box">
+    <div class="list-modal-header">
+      <h2 id="helpModalTitle"></h2>
+      <button class="modal-close-btn" onclick="closeHelpModal()" aria-label="Close"><span aria-hidden="true">✕</span></button>
+    </div>
+    <div id="helpModalBody" class="help-modal-body"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

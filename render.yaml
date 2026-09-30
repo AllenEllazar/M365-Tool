@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: m365-onboarding-app
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      # Not a secret (see README) but tenant-specific, so it's entered by
+      # hand in the Render dashboard rather than committed here.
+      - key: AZURE_CLIENT_ID
+        sync: false
+      # Optional. If left blank, the app computes it from the incoming
+      # request instead (see routes/auth-routes.js) — works fine on Render
+      # since trust proxy is already enabled. Set it explicitly here only
+      # if you want it to exactly match what you register in Entra.
+      - key: PUBLIC_URL
+        sync: false
+      # Optional shared access code shown before the Microsoft sign-in
+      # button. Leave blank in the dashboard to disable it.
+      - key: SITE_PASSWORD
+        sync: false

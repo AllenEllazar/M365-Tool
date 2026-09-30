@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#26397d" />
+<title>Offline · M365 Admin Tool</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f4f6fb;
+    color: #1a2033;
+    text-align: center;
+  }
+  .card {
+    max-width: 380px;
+    background: #fff;
+    border: 1px solid #e3e7f0;
+    border-radius: 18px;
+    padding: 32px 26px;
+    box-shadow: 0 10px 30px rgba(20, 30, 60, 0.08);
+  }
+  img { height: 44px; width: auto; margin-bottom: 18px; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  p { margin: 0 0 22px; color: #5b6478; line-height: 1.5; font-size: 15px; }
+  button {
+    font: inherit;
+    font-weight: 700;
+    color: #fff;
+    background: #26397d;
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 28px;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0f1220; color: #e8ecf8; }
+    .card { background: #171b2e; border-color: #262c45; }
+    p { color: #98a2bd; }
+    img { background: #fff; border-radius: 8px; padding: 4px; }
+    button { background: #4f6df5; }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img src="/logo.png" alt="Philtower MIDC" />
+    <h1>You're offline</h1>
+    <p>The admin tool needs an internet connection to reach Microsoft 365. Check your signal or Wi-Fi, then try again.</p>
+    <button type="button" onclick="location.reload()">Try again</button>
+  </div>
+</body>
+</html>
